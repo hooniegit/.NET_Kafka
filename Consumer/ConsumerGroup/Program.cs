@@ -46,7 +46,7 @@ public class KafkaConsumerManager
     private void ConsumeMessages(int id, CancellationToken cancellationToken)
     {
         // Create Consumer & Subscribe Topic
-        using var consumer = new ConsumerBuilder<string, string>(_config).Build();
+        using var consumer = new ConsumerBuilder<string, string>(_config).Build();        
         consumer.Subscribe(_topic);
 
         try
@@ -102,13 +102,16 @@ class Program
             AutoOffsetReset = AutoOffsetReset.Earliest
         };
 
+        int partitionNumber = 20;
+        string topic = "topic";
+
         // Create & Manage Consumers
-        var consumerManager = new KafkaConsumerManager(20, config, "topicName");
+        var consumerManager = new KafkaConsumerManager(partitionNumber, config, topic);
         consumerManager.Start();
 
+        // Stop Consumer
         Console.WriteLine("Press any key to stop...");
         Console.ReadKey();
-
         consumerManager.Stop();
     }
 }

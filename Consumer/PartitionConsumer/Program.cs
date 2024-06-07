@@ -3,44 +3,41 @@ using Confluent.Kafka;
 
 /**
     - Build Single Consumer Class (Consume Partition)
-    - 
-    - 
-    - 
+    - Poll Datas
 */
 
 public class PartitionConsumer
 {
-    private readonly string _brokerList;
+    // Configuration Settings
+    private readonly ConsumerConfig _config;
     private readonly string _topic;
     private readonly int _partition;
     private readonly long _offset;
-    private IConsumer<Ignore, string> _consumer;
+    private IConsumer<Ignore, string> consumer;
 
-    public PartitionConsumer(string brokerList, string topic, int partition, long offset)
+    // Initialize
+    public PartitionConsumer(ConsumerConfig config, string topic, int partition, long offset)
     {
-        _brokerList = brokerList;
+        _config = config;
         _topic = topic;
         _partition = partition;
         _offset = offset;
-
-        var config = new ConsumerConfig
-        {
-            BootstrapServers = _brokerList,
-            GroupId = Guid.NewGuid().ToString(), // Unique group id for this consumer instance
-            AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnablePartitionEof = true // Optionally enable EOF event
-        };
-
-        _consumer = new ConsumerBuilder<Ignore, string>(config).Build();
     }
 
-    public void StartConsuming()
+    public void Start()
+    {
+        ConsumeMessages();
+    }
+
+    public void ConsumeMessages()
     {
         var partition = new Partition(_partition);
         var topicPartition = new TopicPartition(_topic, partition);
         var topicPartitionOffset = new TopicPartitionOffset(topicPartition, new Offset(_offset));
 
-        _consumer.Assign(topicPartitionOffset);
+        // string or ignore
+        using var consumer = new ConsumerBuilder<string, string>(_config).Build();
+        consumer.Assign(topicPartitionOffset);
 
         Console.WriteLine($"Consuming from topic {_topic}, partition {_partition}, starting from offset {_offset}");
 
@@ -48,13 +45,13 @@ public class PartitionConsumer
         {
             while (true)
             {
-                var result = _consumer.Consume();
-                if (result == null) continue;
+                var consumeResult = consumer.Consume();
+                if (consumeResult == null) continue;
 
-                Console.WriteLine($"Received message at {result.TopicPartitionOffset}: {result.Value}");
+                Console.WriteLine($"Received message at {consumeResult.TopicPartitionOffset}: {consumeResult.Value}");
 
                 // Optionally commit the offset manually
-                _consumer.Commit(result);
+                consumer.Commit(consumeResult);
             }
         }
         catch (ConsumeException ex)
@@ -63,14 +60,14 @@ public class PartitionConsumer
         }
         finally
         {
-            _consumer.Close();
+            consumer.Close();
         }
     }
 
-    public void StopConsuming()
+    public void Stop()
     {
-        _consumer.Unassign();
-        _consumer.Close();
+        consumer.Unassign();
+        consumer.Close();
     }
 }
 
@@ -78,12 +75,25 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        string brokerList = "localhost:9092";
-        string topic = "test-topic";
-        int partition = 0;
-        long offset = 0; // Starting offset
+        var config = new ConsumerConfig
+        {
+            GroupId = "groupId",
+            BootstrapServers = "bootstrapServers",
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnablePartitionEof = true // Optionally enable EOF event
+        };
 
-        var consumer = new PartitionConsumer(brokerList, topic, partition, offset);
-        consumer.StartConsuming();
+        string topic = "topic";
+        int partition = 0;
+        long offset = 0;
+
+        // Create Consumer
+        var consumer = new PartitionConsumer(config, topic, partition, offset);
+        consumer.Start();
+
+        // Stop Consumer
+        Console.WriteLine("Press any key to stop...");
+        Console.ReadKey();
+        consumer.Stop();
     }
 }
