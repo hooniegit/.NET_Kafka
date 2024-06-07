@@ -1,7 +1,7 @@
 ﻿using Confluent.Kafka;
 
 /** 
-    - Build Consumer Class
+    - Build Single Consumer Class
     - Poll Datas
     - Run Multi Tasks Using Threads
 */
@@ -10,9 +10,10 @@ class KafkaConsumer
 {
     private IConsumer<Ignore, string> consumer;
 
-    // Set Consumer Configs
+    // Initialize
     public KafkaConsumer(string bootstrapServers, string groupId, string topic)
     {
+        // Configuration Settings
         var config = new ConsumerConfig
         {
             BootstrapServers = bootstrapServers,
@@ -25,7 +26,6 @@ class KafkaConsumer
         Console.WriteLine($"[Consumer] Consuming Topic {topic}"); // Log
     }
 
-    // Poll Datas
     public void PollDatas()
     {
         Console.WriteLine("[Consumer] Started. Press Ctrl+C to exit."); // Log
@@ -34,6 +34,7 @@ class KafkaConsumer
         {
             while (true)
             {
+                // Consume Messages
                 var consumeResult = consumer.Consume();
 
                 // Run Multi Tasks
