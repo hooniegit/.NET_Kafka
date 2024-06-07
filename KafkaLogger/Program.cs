@@ -116,12 +116,20 @@ public class Program
         _logManager.LogInformation(manualLogDirectory, "[Manual] Application started.");
 
         // Run Tasks with Logs
+        // Background Thread Usage
         _logManager.ExecuteWithLogging(taskLogDirectory, () =>
         {
-            _logManager.LogInformation(taskLogDirectory, "[Task] Task started.");
-            
-            throw new InvalidOperationException("Sample Exception");
-        }, LogLevel.Information, "[Task] Operation succeeded.", "[Task] Operation failed.");
+            try
+            {
+                _logManager.LogInformation(taskLogDirectory, "[Task] Task Started");
+                // Add Tasks Here..
+                throw new InvalidOperationException("Sample Exception");
+            }
+            catch (Exception ex)
+            {
+                _logManager.LogError(taskLogDirectory, $"[Task] Operation Failed: {ex.StackTrace}: {ex.Message}");
+            }
+        }, LogLevel.Information, "[Task] Operation Succeeded", "[Task] Operation Failed Without Exception");
 
         // Log Message Manually
         _logManager.LogInformation(manualLogDirectory, "[Manual] Application ended.");
@@ -133,5 +141,7 @@ public class Program
 
         var program = new Program(logManager);
         program.Run();
+
+        Console.WriteLine("Foreground Thread will Run Other Tasks..");
     }
 }
