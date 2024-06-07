@@ -39,8 +39,6 @@ public class PartitionConsumer
         using var consumer = new ConsumerBuilder<string, string>(_config).Build();
         consumer.Assign(topicPartitionOffset);
 
-        Console.WriteLine($"Consuming from topic {_topic}, partition {_partition}, starting from offset {_offset}");
-
         try
         {
             while (true)
@@ -64,6 +62,7 @@ public class PartitionConsumer
         }
     }
 
+    // Stop Consumer
     public void Stop()
     {
         consumer.Unassign();

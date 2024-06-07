@@ -8,6 +8,8 @@ using Confluent.Kafka;
     - Build Multiple Consumer Classes
     - Poll Datas
     - Manage Consumer Threads with Exceptions
+
+    ※ Need to Merge Options Based on Here
 */
 
 public class KafkaConsumerManager
@@ -38,6 +40,7 @@ public class KafkaConsumerManager
 
     private void StartConsumer(int id)
     {
+        // Run Consumer Threads
         var consumerTask = Task.Run(() => ConsumeMessages(id, _cancellationTokenSource.Token), _cancellationTokenSource.Token);
         _consumerTasks[id] = consumerTask;
     }
